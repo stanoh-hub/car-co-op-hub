@@ -1,151 +1,336 @@
-import React from 'react';
+import React, { useState } from "react";
+import {
+  BarChart3,
+  User,
+  Users,
+  Car,
+  Menu,
+  DollarSign,
+  TrendingUp,
+} from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { DollarSign, Car, Users, TrendingUp, User, BarChart3 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 const AdminDashboard: React.FC = () => {
+  const [activeTab, setActiveTab] = useState("dashboard");
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  const navItems = [
+    { id: "dashboard", label: "Dashboard", icon: <BarChart3 size={22} /> },
+    { id: "admin", label: "Admin Profile", icon: <User size={22} /> },
+    { id: "investors", label: "Investors", icon: <Users size={22} /> },
+    { id: "cars", label: "Cars", icon: <Car size={22} /> },
+  ];
+
+  const [cars, setCars] = useState([
+    { model: "Toyota Premio", buying: 700000, selling: 900000, expense: 50000, profit: 150000 },
+  ]);
+
+  const [formData, setFormData] = useState({
+    model: "",
+    buying: "",
+    selling: "",
+    expense: "",
+  });
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleAddCar = () => {
+    const { model, buying, selling, expense } = formData;
+
+    if (!model || !buying || !selling || !expense) return alert("Please fill all fields");
+
+    const profit = parseFloat(selling) - parseFloat(buying) - parseFloat(expense);
+
+    setCars([
+      ...cars,
+      { model, buying: parseFloat(buying), selling: parseFloat(selling), expense: parseFloat(expense), profit },
+    ]);
+
+    setFormData({ model: "", buying: "", selling: "", expense: "" });
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-10">
-      {/* Header */}
-      <header className="flex justify-between items-center mb-10 border-b pb-4">
-        <h1 className="text-4xl font-extrabold text-gray-800 tracking-tight">Car Investment Admin Panel</h1>
-        <div className="flex items-center gap-3 bg-white shadow px-4 py-2 rounded-xl">
-          <User className="w-7 h-7 text-gray-600" />
-          <span className="font-semibold text-gray-700">Admin Profile</span>
-        </div>
-      </header>
-
-      {/* Stats Overview */}
-      <section className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
-        {[{
-          title: 'Total Profit', icon: <DollarSign className="text-green-500" />, value: 'Ksh 2,450,000'
-        }, {
-          title: 'Cars Sold', icon: <Car className="text-blue-500" />, value: '37'
-        }, {
-          title: 'Total Investors', icon: <Users className="text-purple-500" />, value: '128'
-        }, {
-          title: 'Active Loans', icon: <TrendingUp className="text-red-500" />, value: '12'
-        }].map((stat, i) => (
-          <Card key={i} className="shadow-lg hover:shadow-xl transition-all border border-gray-200 rounded-2xl">
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle className="text-gray-700 font-semibold">{stat.title}</CardTitle>
-              {stat.icon}
-            </CardHeader>
-            <CardContent>
-              <p className="text-2xl font-extrabold text-gray-900">{stat.value}</p>
-            </CardContent>
-          </Card>
+    <div className="flex h-screen bg-gray-50">
+      {/* Sidebar */}
+      <aside
+        className={`fixed md:static left-0 top-0 bg-white border-r border-gray-200 shadow-md flex flex-col items-center py-6 space-y-6 transition-all duration-300 h-full z-40 ${
+          menuOpen ? "w-16" : "hidden md:flex md:w-16"
+        }`}
+      >
+        {navItems.map((item) => (
+          <button
+            key={item.id}
+            onClick={() => {
+              setActiveTab(item.id);
+              setMenuOpen(false);
+            }}
+            className={`p-3 rounded-xl transition ${
+              activeTab === item.id
+                ? "bg-blue-600 text-white"
+                : "hover:bg-gray-100 text-gray-600"
+            }`}
+            title={item.label}
+          >
+            {item.icon}
+          </button>
         ))}
-      </section>
+      </aside>
 
-      {/* Car Management */}
-      <section className="grid md:grid-cols-2 gap-8 mb-10">
-        <Card className="shadow-md border border-gray-200 rounded-2xl">
-          <CardHeader>
-            <CardTitle className="font-bold text-gray-800">Record Car Transaction</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-col gap-5">
-              <Input placeholder="Car Name / Model" className="rounded-xl" />
-              <Input placeholder="Buying Price (Ksh)" type="number" className="rounded-xl" />
-              <Input placeholder="Selling Price (Ksh)" type="number" className="rounded-xl" />
-              <Input placeholder="Expenses (Ksh)" type="number" className="rounded-xl" />
-              <Button className="bg-blue-600 text-white rounded-xl hover:bg-blue-700 font-semibold">Submit</Button>
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col overflow-y-auto">
+        {/* Top Navbar */}
+        <header className="flex items-center justify-between bg-white shadow px-4 py-3">
+          <h1 className="text-xl font-semibold text-gray-800">
+            {activeTab === "dashboard"
+              ? "Dashboard"
+              : activeTab === "admin"
+              ? "Admin Profile"
+              : activeTab === "investors"
+              ? "Investors"
+              : "Cars"}
+          </h1>
+          <button
+            className="md:hidden p-2 rounded-lg hover:bg-gray-200"
+            onClick={() => setMenuOpen(!menuOpen)}
+          >
+            <Menu size={24} />
+          </button>
+        </header>
+
+        {/* Dashboard Content */}
+        <main className="p-4 md:p-6">
+          {activeTab === "dashboard" && (
+           <div>
+             <div className="grid grid-cols-1 md:grid-cols-4 gap-6 lg:grid-cols-5">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Total Revenue</CardTitle>
+                </CardHeader>
+                <CardContent className="flex items-center justify-between">
+                  <p className="text-2xl font-semibold">Ksh 250,000</p>
+                  <DollarSign className="text-green-600" />
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Investors</CardTitle>
+                </CardHeader>
+                <CardContent className="flex items-center justify-between">
+                  <p className="text-2xl font-semibold">18</p>
+                  <Users className="text-blue-600" />
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Cars Sold</CardTitle>
+                </CardHeader>
+                <CardContent className="flex items-center justify-between">
+                  <p className="text-2xl font-semibold">9</p>
+                  <TrendingUp className="text-purple-600" />
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Net Profit</CardTitle>
+                </CardHeader>
+                <CardContent className="flex items-center justify-between">
+                  <p className="text-2xl font-semibold">180000</p>
+                  <Users className="text-blue-600" />
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Loans</CardTitle>
+                </CardHeader>
+                <CardContent className="flex items-center justify-between">
+                  <p className="text-2xl font-semibold">50,000</p>
+                  <Users className="text-blue-600" />
+                </CardContent>
+              </Card>
             </div>
-          </CardContent>
-        </Card>
 
-        <Card className="shadow-md border border-gray-200 rounded-2xl">
-          <CardHeader>
-            <CardTitle className="font-bold text-gray-800">Investment Overview</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <p className="text-gray-600">Total Investments</p>
-                <p className="text-xl font-bold">Ksh 8,950,000</p>
-              </div>
-              <div>
-                <p className="text-gray-600">Pending Loans</p>
-                <p className="text-xl font-bold text-red-600">Ksh 540,000</p>
-              </div>
+            {/* Add Car Form */}
+            <Card className="mb-8 mt-6">
+              <CardHeader>
+                <CardTitle>Add Car Details</CardTitle>
+              </CardHeader>
+              <CardContent className="grid md:grid-cols-4 gap-4">
+                <input
+                  name="model"
+                  placeholder="Car Model"
+                  value={formData.model}
+                  onChange={handleChange}
+                  className="border rounded p-2"
+                />
+                <input
+                  name="buying"
+                  type="number"
+                  placeholder="Buying Price"
+                  value={formData.buying}
+                  onChange={handleChange}
+                  className="border rounded p-2"
+                />
+                <input
+                  name="selling"
+                  type="number"
+                  placeholder="Selling Price"
+                  value={formData.selling}
+                  onChange={handleChange}
+                  className="border rounded p-2"
+                />
+                <input
+                  name="expense"
+                  type="number"
+                  placeholder="Expense"
+                  value={formData.expense}
+                  onChange={handleChange}
+                  className="border rounded p-2"
+                />
+                <Button onClick={handleAddCar} className="md:col-span-4 w-full">
+                  Add Car
+                </Button>
+              </CardContent>
+            </Card>
+           </div>
+          )}
+
+          {/* Admin Profile */}
+          {activeTab === "admin" && (
+            <Card className="max-w-3xl mx-auto mt-6">
+              <CardHeader>
+                <CardTitle>Admin Profile</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <p><strong>Name:</strong> John Doe</p>
+                <p><strong>Email:</strong> admin@carcoop.com</p>
+                <p><strong>Role:</strong> Super Administrator</p>
+                <p><strong>Phone:</strong> +254 712 345 678</p>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Investors Tab */}
+          {activeTab === "investors" && (
+            <Card className="mt-6">
+              <CardHeader>
+                <CardTitle>Investor Details</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Name</TableHead>
+                      <TableHead>Email</TableHead>
+                      <TableHead>Investment</TableHead>
+                      <TableHead>Returns</TableHead>
+                      <TableHead>Loans</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    <TableRow>
+                      <TableCell>Mary W.</TableCell>
+                      <TableCell>mary@invest.com</TableCell>
+                      <TableCell>Ksh 150,000</TableCell>
+                      <TableCell>Ksh 20,000</TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell>James K.</TableCell>
+                      <TableCell>james@invest.com</TableCell>
+                      <TableCell>Ksh 200,000</TableCell>
+                      <TableCell>Ksh 35,000</TableCell>
+                      <TableCell>Ksh 3,000</TableCell>
+                    </TableRow>
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Cars Tab */}
+          {activeTab === "cars" && (
+            <div className="mt-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Cars Details</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Car Model</TableHead>
+                        <TableHead>Buying Price</TableHead>
+                        <TableHead>Selling Price</TableHead>
+                        <TableHead>Expenses</TableHead>
+                        <TableHead>Date</TableHead>
+                        <TableHead>Profit</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {[
+                        {
+                          car: "Toyota Axio",
+                          buy: 950000,
+                          sell: 1150000,
+                          expenses: 30000,
+                          date: "2025-03-09",
+                        },
+                        {
+                          car: "Honda Fit",
+                          buy: 780000,
+                          sell: 890000,
+                          expenses: 25000,
+                          date: "2025-04-15",
+                        },
+                        {
+                          car: "Nissan Note",
+                          buy: 850000,
+                          sell: 0,
+                          expenses: 20000,
+                          date: "2025-05-04",
+                        },
+                      ].map((item, i) => {
+                        const profit =
+                          item.sell > 0
+                            ? item.sell - item.buy - item.expenses
+                            : 0;
+                        return (
+                          <TableRow key={i}>
+                            <TableCell>{item.car}</TableCell>
+                            <TableCell>Ksh {item.buy.toLocaleString()}</TableCell>
+                            <TableCell>
+                              {item.sell > 0 ? `Ksh ${item.sell.toLocaleString()}` : "—"}
+                            </TableCell>
+                            <TableCell>Ksh {item.expenses.toLocaleString()}</TableCell>
+                            <TableCell>{item.date}</TableCell>
+                            <TableCell
+                              className={
+                                profit > 0
+                                  ? "text-green-600 font-semibold"
+                                  : profit < 0
+                                  ? "text-red-600 font-semibold"
+                                  : "text-gray-500"
+                              }
+                            >
+                              {item.sell > 0
+                                ? `Ksh ${profit.toLocaleString()}`
+                                : "Pending"}
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
             </div>
-            <div className="mt-5 flex gap-3">
-              <Button variant="outline" className="rounded-xl border-gray-300">View Details</Button>
-              <Button className="bg-green-600 hover:bg-green-700 text-white rounded-xl">Export CSV</Button>
-            </div>
-          </CardContent>
-        </Card>
-      </section>
+          )}
 
-      {/* Tables */}
-      <section className="grid md:grid-cols-2 gap-8">
-        <Card className="shadow-lg border border-gray-200 rounded-2xl">
-          <CardHeader>
-            <CardTitle className="font-bold text-gray-800">Recently Sold Cars</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Car</TableHead>
-                  <TableHead>Buying Price</TableHead>
-                  <TableHead>Selling Price</TableHead>
-                  <TableHead>Profit</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {[{
-                  car: 'Toyota Prado', buy: 2800000, sell: 3200000, profit: 400000
-                }, {
-                  car: 'Mazda Demio', buy: 800000, sell: 950000, profit: 150000
-                }].map((item, i) => (
-                  <TableRow key={i}>
-                    <TableCell>{item.car}</TableCell>
-                    <TableCell>Ksh {item.buy.toLocaleString()}</TableCell>
-                    <TableCell>Ksh {item.sell.toLocaleString()}</TableCell>
-                    <TableCell className="text-green-600 font-semibold">Ksh {item.profit.toLocaleString()}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
-
-        <Card className="shadow-lg border border-gray-200 rounded-2xl">
-          <CardHeader>
-            <CardTitle className="font-bold text-gray-800">Investors & Loans</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Investment</TableHead>
-                  <TableHead>Loan</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {[{
-                  name: 'John Mwangi', invest: 500000, loan: 0
-                }, {
-                  name: 'Grace Achieng', invest: 300000, loan: 80000
-                }].map((user, i) => (
-                  <TableRow key={i}>
-                    <TableCell>{user.name}</TableCell>
-                    <TableCell>Ksh {user.invest.toLocaleString()}</TableCell>
-                    <TableCell className={user.loan ? 'text-red-600 font-semibold' : 'text-green-600 font-semibold'}>
-                      {user.loan ? `Ksh ${user.loan.toLocaleString()}` : 'No Loan'}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
-      </section>
+        </main>
+      </div>
     </div>
   );
 };
